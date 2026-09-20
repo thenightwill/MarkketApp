@@ -15,38 +15,7 @@ import { LanguageSwitcher } from '../../shared/components/language-switcher';
     form { display: grid; gap: .9rem; }
     .top { display: flex; justify-content: flex-end; margin-bottom: .5rem; }
   `,
-  template: `
-    <div class="auth">
-      <div class="top"><app-language-switcher /></div>
-      <div class="card">
-        <h1>{{ i18n.t().auth.login.title }}</h1>
-        <p class="muted">{{ i18n.t().auth.login.subtitle }}</p>
-        <app-alert [message]="error()" />
-        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-          <div class="field">
-            <label for="email">{{ i18n.t().auth.login.email }}</label>
-            <input id="email" type="email" formControlName="email" autocomplete="username"
-              [class.invalid]="form.controls.email.touched && form.controls.email.invalid">
-            @if (form.controls.email.touched && form.controls.email.invalid) {
-              <span class="error">{{ i18n.t().auth.login.emailError }}</span>
-            }
-          </div>
-          <div class="field">
-            <label for="password">{{ i18n.t().auth.login.password }}</label>
-            <input id="password" type="password" formControlName="password" autocomplete="current-password"
-              [class.invalid]="form.controls.password.touched && form.controls.password.invalid">
-            @if (form.controls.password.touched && form.controls.password.invalid) {
-              <span class="error">{{ i18n.t().auth.login.passwordRequired }}</span>
-            }
-          </div>
-          <button class="btn primary" type="submit" [disabled]="loading()">
-            {{ loading() ? i18n.t().auth.login.submitting : i18n.t().auth.login.submit }}
-          </button>
-        </form>
-        <p class="muted">{{ i18n.t().auth.login.noAccount }} <a routerLink="/register">{{ i18n.t().auth.login.register }}</a></p>
-      </div>
-    </div>
-  `,
+  templateUrl: './login-page.html',
 })
 export class LoginPage {
   private readonly auth = inject(AuthService);

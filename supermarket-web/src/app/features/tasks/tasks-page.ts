@@ -16,77 +16,7 @@ import { UserTaskService } from './task.service';
 @Component({
   selector: 'app-tasks-page',
   imports: [ReactiveFormsModule, DatePipe, Alert],
-  template: `
-    <div class="page-header">
-      <div>
-        <h1>{{ i18n.t().tasks.title }}</h1>
-        <p>{{ i18n.t().tasks.subtitle }}</p>
-      </div>
-      <button type="button" class="btn primary" (click)="openCreate()">{{ i18n.t().tasks.newTask }}</button>
-    </div>
-
-    <app-alert [message]="notice()" kind="success" />
-    <app-alert [message]="error()" />
-
-    @if (formOpen()) {
-      <section class="card" [attr.aria-label]="i18n.t().tasks.formAriaLabel">
-        <h2>{{ editing() ? i18n.t().tasks.editTask : i18n.t().tasks.newTask }}</h2>
-        <form [formGroup]="form" (ngSubmit)="save()" novalidate>
-          <div class="grid">
-            <div class="field wide">
-              <label for="t-title">{{ i18n.t().tasks.taskTitle }}</label>
-              <input id="t-title" formControlName="title" [class.invalid]="form.controls.title.touched && form.controls.title.invalid">
-              @if (form.controls.title.touched && form.controls.title.invalid) { <span class="error">{{ i18n.t().tasks.titleRequired }}</span> }
-            </div>
-            <div class="field wide">
-              <label for="t-description">{{ i18n.t().tasks.description }}</label>
-              <textarea id="t-description" rows="3" formControlName="description"></textarea>
-            </div>
-            <div class="field">
-              <label for="t-due">{{ i18n.t().tasks.dueDate }}</label>
-              <input id="t-due" type="date" formControlName="dueDate" [class.invalid]="form.controls.dueDate.touched && form.controls.dueDate.invalid">
-              @if (form.controls.dueDate.touched && form.controls.dueDate.invalid) { <span class="error">{{ i18n.t().tasks.dueDateRequired }}</span> }
-            </div>
-          </div>
-          <div class="actions" style="margin-top: 1rem">
-            <button type="submit" class="btn primary" [disabled]="saving()">{{ saving() ? i18n.t().common.saving : i18n.t().common.save }}</button>
-            <button type="button" class="btn" (click)="closeForm()">{{ i18n.t().common.cancel }}</button>
-          </div>
-        </form>
-      </section>
-    }
-
-    @if (loading()) {
-      <div class="card empty">{{ i18n.t().common.loading }}</div>
-    } @else if (tasks().length === 0) {
-      <div class="card empty">{{ i18n.t().tasks.empty }}</div>
-    } @else {
-      @for (group of groups(); track group.status) {
-        <section class="card" [attr.aria-label]="group.label">
-          <h2>{{ group.label }} <span class="badge">{{ group.tasks.length }}</span></h2>
-          @if (group.tasks.length === 0) {
-            <p class="muted">{{ i18n.t().tasks.noTasksInGroup }}</p>
-          }
-          @for (task of group.tasks; track task.id) {
-            <article class="task">
-              <div class="info">
-                <strong>{{ task.title }}</strong>
-                @if (task.description) { <div class="muted">{{ task.description }}</div> }
-                <div class="muted">{{ i18n.t().tasks.due }} {{ task.dueDate | date: 'dd/MM/yyyy' : 'UTC' }}</div>
-              </div>
-              <div class="actions">
-                @if (nextLabel(task); as label) {
-                  <button type="button" class="btn small primary" (click)="advance(task)">{{ label }}</button>
-                }
-                <button type="button" class="btn small" (click)="openEdit(task)">{{ i18n.t().common.edit }}</button>
-                <button type="button" class="btn small danger" (click)="remove(task)">{{ i18n.t().tasks.delete }}</button>
-              </div>
-            </article>
-          }
-        </section>
-      }
-    }
-  `,
+  templateUrl: './tasks-page.html',
   styles: `
     .task { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .75rem; padding: .75rem 0; border-top: 1px solid var(--border); }
     .task .info { flex: 1; min-width: 200px; }

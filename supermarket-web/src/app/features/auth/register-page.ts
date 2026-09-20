@@ -15,47 +15,7 @@ import { LanguageSwitcher } from '../../shared/components/language-switcher';
     form { display: grid; gap: .9rem; }
     .top { display: flex; justify-content: flex-end; margin-bottom: .5rem; }
   `,
-  template: `
-    <div class="auth">
-      <div class="top"><app-language-switcher /></div>
-      <div class="card">
-        <h1>{{ i18n.t().auth.register.title }}</h1>
-        <p class="muted">{{ i18n.t().auth.register.subtitle }}</p>
-        <app-alert [message]="error()" />
-        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-          <div class="field">
-            <label for="name">{{ i18n.t().auth.register.name }}</label>
-            <input id="name" formControlName="name" autocomplete="name"
-              [class.invalid]="form.controls.name.touched && form.controls.name.invalid">
-            @if (form.controls.name.touched && form.controls.name.invalid) {
-              <span class="error">{{ i18n.t().auth.register.nameRequired }}</span>
-            }
-          </div>
-          <div class="field">
-            <label for="email">{{ i18n.t().auth.register.email }}</label>
-            <input id="email" type="email" formControlName="email" autocomplete="username"
-              [class.invalid]="form.controls.email.touched && form.controls.email.invalid">
-            @if (form.controls.email.touched && form.controls.email.invalid) {
-              <span class="error">{{ i18n.t().auth.register.emailError }}</span>
-            }
-          </div>
-          <div class="field">
-            <label for="password">{{ i18n.t().auth.register.password }}</label>
-            <input id="password" type="password" formControlName="password" autocomplete="new-password"
-              [class.invalid]="form.controls.password.touched && form.controls.password.invalid">
-            <span class="hint">{{ i18n.t().auth.register.passwordHint }}</span>
-            @if (form.controls.password.touched && form.controls.password.invalid) {
-              <span class="error">{{ i18n.t().auth.register.passwordError }}</span>
-            }
-          </div>
-          <button class="btn primary" type="submit" [disabled]="loading()">
-            {{ loading() ? i18n.t().auth.register.submitting : i18n.t().auth.register.submit }}
-          </button>
-        </form>
-        <p class="muted">{{ i18n.t().auth.register.haveAccount }} <a routerLink="/login">{{ i18n.t().auth.register.login }}</a></p>
-      </div>
-    </div>
-  `,
+  templateUrl: './register-page.html',
 })
 export class RegisterPage {
   private readonly auth = inject(AuthService);
