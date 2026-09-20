@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Interfaces\Authentication\" />
+    <Folder Include="Interfaces\Services\" />
+    <Folder Include="Interfaces\Persistance\" />
+    <Folder Include="Inventory\" />
+    <Folder Include="Authentication\" />
+    <Folder Include="Common\" />
+    <Folder Include="Task\" />
+    <Folder Include="Sales\" />
+    <Folder Include="Products\" />
+  </ItemGroup>
+
+</Project>
