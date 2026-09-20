@@ -1,28 +1,28 @@
 # Supermarket
 
-Aplicación web de supermercado para una entrevista técnica .NET/Angular: API en .NET 10 con Clean Architecture, SQL Server, autenticación JWT y un frontend Angular. Se desarrolló con TDD (MSTest) y cubre productos, inventario por lotes, ventas con FEFO y tareas.
+Supermarket web application built for a .NET/Angular technical interview: a .NET 10 API with Clean Architecture, SQL Server, JWT authentication, and an Angular frontend. Built with TDD (MSTest) and covers products, batch-based inventory, FEFO sales, and tasks.
 
-## Arquitectura
+## Architecture
 
 ```text
 WebAPI ─────────► Application ─────────► Domain
    │                  ▲
-   └──► Infraestructure ┘   (implementa las interfaces de Application)
+   └──► Infraestructure ┘   (implements Application's interfaces)
 ```
 
-| Proyecto | Responsabilidad |
+| Project | Responsibility |
 |---|---|
-| `Domain` | Entidades, enums, `DomainException` y el servicio puro `FefoAllocator`. No depende de nada. |
-| `Application` | Casos de uso, DTOs e interfaces (repositorios, `IUnitOfWork`, JWT, hasher, `ICurrentUser`). |
-| `Infraestructure` | EF Core + SQL Server, configuraciones, repositorios, migraciones, JWT, PBKDF2 y seed. |
-| `WebAPI` | Controladores delgados, middleware de errores, JWT Bearer, CORS y DI. |
-| `supermarket-web` | Angular (standalone, signals, reactive forms, interceptor y guards). |
+| `Domain` | Entities, enums, `DomainException`, and the pure `FefoAllocator` service. Depends on nothing. |
+| `Application` | Use cases, DTOs, and interfaces (repositories, `IUnitOfWork`, JWT, hasher, `ICurrentUser`). |
+| `Infraestructure` | EF Core + SQL Server, configurations, repositories, migrations, JWT, PBKDF2, and seeding. |
+| `WebAPI` | Thin controllers, error middleware, JWT Bearer, CORS, and DI. |
+| `supermarket-web` | Angular (standalone components, signals, reactive forms, interceptor, and guards). |
 
-Tests: `Domain.Tests`, `Application.Tests`, `Infraestructure.Tests`, `Api.Tests` (MSTest) y Vitest en `supermarket-web`.
+Tests: `Domain.Tests`, `Application.Tests`, `Infraestructure.Tests`, `Api.Tests` (MSTest), and Vitest in `supermarket-web`.
 
-## Puesta en marcha
+## Getting started
 
-Requisitos: .NET 10 SDK, Node 20+ y Docker.
+Requirements: .NET 10 SDK, Node 20+, and Docker.
 
 ```bash
 docker compose up -d
@@ -31,47 +31,47 @@ dotnet run --project WebAPI --launch-profile http
 cd supermarket-web && npm install && npm start
 ```
 
-- API en `http://localhost:5203` y web en `http://localhost:4200`.
-- `docker-compose.yml` usa la contraseña `Supermarket_Dev_2026!` para `sa`; puedes cambiarla con `MSSQL_SA_PASSWORD` y reflejarla en la cadena de conexión.
-- `appsettings.Development.json` está en `.gitignore`. Contiene la cadena de conexión, `Jwt:Key` y las contraseñas del seed. En el ejemplo son marcadores; defínelos antes de arrancar.
-- Con `Database:MigrateOnStartup` y `Seed:Enabled` en `true` (solo en el archivo de Development) la API migra la base y carga los datos de `docs/seed.md`.
+- API at `http://localhost:5203` and web app at `http://localhost:4200`.
+- `docker-compose.yml` uses the password `Supermarket_Dev_2026!` for `sa`; you can change it with `MSSQL_SA_PASSWORD` and reflect it in the connection string.
+- `appsettings.Development.json` is in `.gitignore`. It holds the connection string, `Jwt:Key`, and the seed passwords. The example file has placeholders; fill them in before starting.
+- With `Database:MigrateOnStartup` and `Seed:Enabled` set to `true` (only in the Development file), the API migrates the database and loads the data described in `docs/seed.md` on startup.
 
-### Documentación OpenAPI
+### OpenAPI documentation
 
-Con la API corriendo en `Development`:
+With the API running in `Development`:
 
-- **UI interactiva**: `http://localhost:5203/scalar/v1` (Scalar). Cada endpoint muestra resumen, descripción, parámetros, cuerpo, respuestas posibles y un ejemplo `curl`.
-- **Documento crudo**: `http://localhost:5203/openapi/v1.json`.
+- **Interactive UI**: `http://localhost:5203/scalar/v1` (Scalar). Every endpoint shows a summary, description, parameters, body, possible responses, and a `curl` example.
+- **Raw document**: `http://localhost:5203/openapi/v1.json`.
 
-Para probar un endpoint protegido desde la UI: `POST /api/auth/login`, copia `accessToken` de la respuesta, y pégalo en el panel **Authentication** (arriba a la derecha) eligiendo el esquema `Bearer` — sin el prefijo `Bearer `, Scalar lo agrega solo.
+To try a protected endpoint from the UI: call `POST /api/auth/login`, copy `accessToken` from the response, and paste it into the **Authentication** panel (top right) under the `Bearer` scheme — no `Bearer ` prefix needed, Scalar adds it for you.
 
-El documento se genera con `Microsoft.AspNetCore.OpenApi` (nativo de .NET, sin comentarios `///` en el código, solo atributos):
-- `[EndpointSummary]` / `[EndpointDescription]` en cada acción de cada controller.
-- `[ProducesResponseType<T>]` con los códigos HTTP reales que cada endpoint puede devolver (ver la tabla de errores más abajo).
-- Un `IOpenApiDocumentTransformer` (`WebAPI/OpenApi/BearerSecuritySchemeTransformer.cs`) declara el esquema de seguridad `Bearer` (JWT) a partir del esquema de autenticación ya registrado.
-- Un `IOpenApiOperationTransformer` (`WebAPI/OpenApi/AuthorizeOperationTransformer.cs`) marca como protegida cada operación salvo las `[AllowAnonymous]` (login/register) y les agrega automáticamente la respuesta `401`.
-- Un tercer transformer (`ApiInfoDocumentTransformer.cs`) pone título, versión y descripción del documento.
+The document is generated with `Microsoft.AspNetCore.OpenApi` (native to .NET, no `///` comments in the code, only attributes):
+- `[EndpointSummary]` / `[EndpointDescription]` on every controller action.
+- `[ProducesResponseType<T>]` with the real HTTP codes each endpoint can return (see the error table below).
+- An `IOpenApiDocumentTransformer` (`WebAPI/OpenApi/BearerSecuritySchemeTransformer.cs`) declares the `Bearer` (JWT) security scheme from the already-registered authentication scheme.
+- An `IOpenApiOperationTransformer` (`WebAPI/OpenApi/AuthorizeOperationTransformer.cs`) marks every operation as protected except the `[AllowAnonymous]` ones (login/register) and automatically adds the `401` response to the rest.
+- A third transformer (`ApiInfoDocumentTransformer.cs`) sets the document's title, version, and description.
 
-`app.MapOpenApi()` y `app.MapScalarApiReference()` solo se registran en `Development`, igual que en el `Program.cs` original.
+`app.MapOpenApi()` and `app.MapScalarApiReference()` are only registered in `Development`, same as in the original `Program.cs`.
 
-### Usuarios del seed
+### Seed users
 
-| Correo | Rol |
+| Email | Role |
 |---|---|
 | `admin@supermarket.local` | Administrator |
-| `employee1@supermarket.local` | Employee (dueño de las ventas y tareas de ejemplo) |
+| `employee1@supermarket.local` | Employee (owner of the sample sales and tasks) |
 | `employee2@supermarket.local` | Employee |
 
-Las contraseñas son las de `Seed:AdminPassword` y `Seed:EmployeePassword`. El registro público siempre crea `Employee`.
+Passwords come from `Seed:AdminPassword` and `Seed:EmployeePassword`. Public registration always creates an `Employee`.
 
-## Pruebas
+## Tests
 
 ```bash
 dotnet test MarketApp.slnx
 cd supermarket-web && npm test -- --watch=false
 ```
 
-`Infraestructure.Tests` y `Api.Tests` levantan un SQL Server real con Testcontainers, así que necesitan Docker. Verifican rowversion, índices únicos, rollback de transacciones y ventas concurrentes reales.
+`Infraestructure.Tests` and `Api.Tests` spin up a real SQL Server with Testcontainers, so they need Docker. They verify rowversion concurrency, unique indexes, transaction rollback, and real concurrent sales.
 
 | Suite | Tests |
 |---|---|
@@ -79,27 +79,27 @@ cd supermarket-web && npm test -- --watch=false
 | Application | 83 |
 | Infraestructure | 39 |
 | Api | 65 |
-| Web (Vitest) | 54 |
+| Web (Vitest) | 65 |
 
 ## API
 
-Todas las rutas, excepto `auth`, exigen `Authorization: Bearer <token>`. Ejemplos listos para usar en `WebAPI/WebAPI.http`, o de forma interactiva en `http://localhost:5203/scalar/v1` (ver [Documentación OpenAPI](#documentación-openapi)).
+Every route except `auth` requires `Authorization: Bearer <token>`. Ready-to-use examples live in `WebAPI/WebAPI.http`, or interactively at `http://localhost:5203/scalar/v1` (see [OpenAPI documentation](#openapi-documentation)).
 
-| Método y ruta | Acceso | Notas |
+| Method & route | Access | Notes |
 |---|---|---|
-| `POST /api/auth/register`, `POST /api/auth/login` | Público | Devuelven `accessToken`, `expiresAt` y `user`. |
-| `GET /api/products`, `GET /api/products/{id}` | Autenticado | `?includeInactive=true` solo lo respeta para administradores. |
-| `POST`, `PUT /api/products`, `DELETE /api/products/{id}` | Administrador | `DELETE` desactiva; `PUT` puede reactivar con `isActive`. |
-| `GET /api/inventory`, `GET /api/inventory/{id}` | Autenticado | Filtros `productId`, `lowStock`, `expired`. |
-| `POST /api/inventory`, `PUT /api/inventory/{id}` | Administrador | `PUT` nunca modifica la cantidad. |
-| `POST /api/inventory/{id}/add-quantity` | Administrador | Único punto para reponer stock (`{ "quantity": number }`); `RemoveQuantity` solo lo usa `CreateSale`. |
-| `POST /api/sales` | Autenticado | Solo recibe `items[{productId, quantity}]`. |
-| `GET /api/sales`, `GET /api/sales/{id}` | Autenticado | El empleado ve las suyas; el administrador, todas. |
-| `GET`, `POST`, `PUT`, `DELETE /api/tasks` | Autenticado | Siempre limitado al dueño del token, incluso para administradores. |
+| `POST /api/auth/register`, `POST /api/auth/login` | Public | Return `accessToken`, `expiresAt`, and `user`. |
+| `GET /api/products`, `GET /api/products/{id}` | Authenticated | `?includeInactive=true` only has effect for administrators. |
+| `POST`, `PUT /api/products`, `DELETE /api/products/{id}` | Administrator | `DELETE` deactivates; `PUT` can reactivate via `isActive`. |
+| `GET /api/inventory`, `GET /api/inventory/{id}` | Authenticated | Filters: `productId`, `lowStock`, `expired`. |
+| `POST /api/inventory`, `PUT /api/inventory/{id}` | Administrator | `PUT` never changes the quantity. |
+| `POST /api/inventory/{id}/add-quantity` | Administrator | The only way to restock (`{ "quantity": number }`); `RemoveQuantity` is only ever called by `CreateSale`. |
+| `POST /api/sales` | Authenticated | Only accepts `items[{productId, quantity}]`. |
+| `GET /api/sales`, `GET /api/sales/{id}` | Authenticated | Employees see their own; administrators see all. |
+| `GET`, `POST`, `PUT`, `DELETE /api/tasks` | Authenticated | Always scoped to the token's owner, even for administrators. |
 
-Errores en `application/problem+json` con un campo `code`:
+Errors are returned as `application/problem+json` with a `code` field:
 
-| HTTP | Códigos |
+| HTTP | Codes |
 |---|---|
 | 400 | `VALIDATION_ERROR`, `INVALID_PRODUCT`, `INVALID_PRODUCT_PRICE`, `INVALID_INVENTORY`, `INVALID_QUANTITY`, `SALE_EMPTY`, `INVALID_TASK` |
 | 401 | `UNAUTHORIZED`, `INVALID_CREDENTIALS` |
@@ -107,34 +107,43 @@ Errores en `application/problem+json` con un campo `code`:
 | 404 | `PRODUCT_NOT_FOUND`, `INVENTORY_NOT_FOUND`, `SALE_NOT_FOUND`, `TASK_NOT_FOUND` |
 | 409 | `DUPLICATE_PRODUCT`, `DUPLICATE_BATCH`, `EMAIL_ALREADY_EXISTS`, `PRODUCT_INACTIVE`, `INSUFFICIENT_STOCK`, `INVENTORY_EXPIRED`, `INVALID_TASK_TRANSITION`, `CONCURRENCY_CONFLICT` |
 
-## Ventas: FEFO, transacción y concurrencia
+## Sales: FEFO, transaction, and concurrency
 
-1. El caso de uso valida productos (existen, activos, cantidad válida) y agrupa líneas repetidas.
-2. `FefoAllocator` (dominio, puro) reparte cada línea entre lotes por vencimiento más próximo, ignorando lotes vencidos, inactivos o vacíos.
-3. Solo si **todas** las líneas pueden cubrirse se descuenta el stock y se crea la venta con el precio vigente del backend. Nada se toca si alguna línea falla.
-4. Venta, items y descuento se guardan en una única transacción (`IUnitOfWork.ExecuteInTransactionAsync`).
-5. `WarehouseStock` lleva una columna `rowversion`. Si otra venta modificó el lote, EF lanza un conflicto de concurrencia y el caso de uso reintenta hasta 3 veces releyendo el inventario. Al agotarse, responde `409 CONCURRENCY_CONFLICT`.
+1. The use case validates the products (exist, active, valid quantity) and merges repeated lines.
+2. `FefoAllocator` (pure domain logic) splits each line across batches by the closest expiration date, ignoring expired, inactive, or empty batches.
+3. Stock is only deducted, and the sale only created at the backend's current price, if **every** line can be covered. Nothing is touched if any line fails.
+4. The sale, its items, and the stock deduction are saved in a single transaction (`IUnitOfWork.ExecuteInTransactionAsync`).
+5. `WarehouseStock` carries a `rowversion` column. If another sale modified the batch, EF raises a concurrency conflict and the use case retries up to 3 times, re-reading inventory each time. Once exhausted, it responds `409 CONCURRENCY_CONFLICT`.
 
-## Decisiones de diseño
+## Design decisions
 
-- **SQL Server como único proveedor**, con `rowversion` real, un índice único filtrado (`IsActive = 1`) para la identidad lógica de producto y un `CHECK (Quantity >= 0)`.
-- **Identidad lógica de producto**: `Name + Brand + Category + UnitType + UnitValue`, sin distinguir mayúsculas.
-- **`UserTask` en lugar de `Task`**: con `ImplicitUsings`, un tipo llamado `Task` o `TaskStatus` choca con `System.Threading.Tasks`. El renombre se aplicó a toda la cadena (entidad, `IUserTaskRepository`/`UserTaskRepository`, DTOs y casos de uso en Application, y el modelo/servicio en Angular) para no mezclar los dos nombres. La ruta (`/api/tasks`), la tabla (`Tasks`), `TasksController` y la UI ("Tareas") mantienen el nombre de negocio.
-- **`SaleStatus`** es `Completed` o `Incomplete`. Una venta nace `Incomplete` y `Complete()` exige al menos un item.
-- **Productos `Unit`** solo aceptan cantidades enteras.
-- **Recursos ajenos devuelven 404** (ventas de otro empleado, tareas de otro usuario) para no revelar qué ids existen.
-- **`ICurrentUser`** sale del JWT; ningún request contiene `UserId`, precio ni lote.
-- **Permisos**: el administrador gestiona catálogo e inventario; el empleado consulta y vende.
-- **Costo oculto para empleados**: `ProductResponse.Cost` es `decimal?`; `GetProductsUseCase`/`GetProductByIdUseCase` lo devuelven `null` si `ICurrentUser` no es administrador. Los endpoints de creación/edición son admin-only y siempre lo incluyen.
-- Sin comentarios en el código, salvo el módulo Tasks y las migraciones generadas por EF.
+- **SQL Server as the only provider**, with a real `rowversion`, a filtered unique index (`IsActive = 1`) for the product's logical identity, and a `CHECK (Quantity >= 0)`.
+- **Product logical identity**: `Name + Brand + Category + UnitType + UnitValue`, case-insensitive.
+- **`UserTask` instead of `Task`**: with `ImplicitUsings`, a type named `Task` or `TaskStatus` collides with `System.Threading.Tasks`. The rename was applied throughout the chain (the entity, `IUserTaskRepository`/`UserTaskRepository`, DTOs and use cases in Application, and the model/service in Angular) to avoid mixing the two names. The route (`/api/tasks`), the table (`Tasks`), `TasksController`, and the UI ("Tareas") keep the business name.
+- **`SaleStatus`** is `Completed` or `Incomplete`. A sale starts as `Incomplete`, and `Complete()` requires at least one item.
+- **`Unit` products** only accept whole-number quantities.
+- **Resources belonging to someone else return 404** (another employee's sale, another user's task) so as not to reveal which ids exist.
+- **`ICurrentUser`** comes from the JWT; no request carries a `UserId`, price, or batch.
+- **Permissions**: the administrator manages the catalog and inventory; the employee browses and sells.
+- **Cost hidden from employees**: `ProductResponse.Cost` is `decimal?`; `GetProductsUseCase`/`GetProductByIdUseCase` return `null` unless `ICurrentUser` is an administrator. The create/update endpoints are admin-only and always include it.
+- No comments in the code, except for the Tasks module and the EF-generated migrations.
 
-Deliberadamente fuera de alcance: microservicios, CQRS/MediatR, Event Sourcing, Redis, brokers, Outbox y Kubernetes.
+Deliberately out of scope: microservices, CQRS/MediatR, Event Sourcing, Redis, brokers, Outbox, and Kubernetes.
 
-## Módulo Tasks y uso crítico de GenAI
+## Tasks module and critical use of GenAI
 
-El módulo Tasks (`UserTask`, casos de uso, repositorio, controlador y `features/tasks`) es el que documenta con comentarios cómo se usó GenAI y qué se revisó del resultado. Revisión crítica sobre lo generado:
+The Tasks module (`UserTask`, its use cases, repository, controller, and `features/tasks`) is the one documented with comments explaining how GenAI was used and what was reviewed in its output. Critical review of what was generated:
 
-- **Nombre**: el stub original compilaba con el `TaskStatus` de la BCL y no con el enum propio. Se renombró y se documentó.
-- **Propiedad de los datos**: el repositorio no ofrece "obtener por id" sin usuario, de modo que ningún caso de uso puede olvidar el filtro por dueño. Los tests lo prueban en las cuatro capas, incluido el administrador.
-- **Máquina de estados**: vive solo en el agregado (`Pending → InProgress → Completed`). La UI la usa únicamente para decidir qué botones mostrar.
-- **Errores encontrados al revisar**: atributos de validación en records puestos con `property:` (MVC los rechaza y devolvía 500, lo detectó un test de integración), un test de FEFO con una premisa equivocada, fakes que no simulaban el rollback y un paquete transitivo con vulnerabilidad conocida (`System.Security.Cryptography.Xml`) que se fijó a una versión parcheada.
+- **Naming**: the original stub compiled against the BCL's `TaskStatus` instead of the project's own enum. It was renamed and documented.
+- **Data ownership**: the repository offers no "get by id" without a user, so no use case can forget the owner filter. Tests prove this across all four layers, including for administrators.
+- **State machine**: lives only in the aggregate (`Pending → InProgress → Completed`). The UI only uses it to decide which buttons to show.
+- **Errors found during review**: validation attributes on records declared with `property:` (MVC rejects these and returned a 500, caught by an integration test), a FEFO test with a wrong premise, fakes that didn't simulate rollback, and a transitive package with a known vulnerability (`System.Security.Cryptography.Xml`) that was pinned to a patched version.
+
+See [`docs/genai-demonstration.md`](docs/genai-demonstration.md) for the full write-up: the actual prompt used, a representative code sample, how the output was validated, and how each of the issues above was found and corrected.
+
+## Further documentation
+
+- [`docs/requirements.md`](docs/requirements.md) — functional and non-functional requirements, and how each one was turned into a use case and a test (TDD traceability).
+- [`docs/technical-presentation.md`](docs/technical-presentation.md) — architecture, design choices, flow diagrams, and a demo script for the technical panel.
+- [`docs/genai-demonstration.md`](docs/genai-demonstration.md) — the critical-use-of-GenAI worked example described above.
+- [`docs/seed.md`](docs/seed.md) — seed data and the business scenarios it covers.
