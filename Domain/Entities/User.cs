@@ -1,24 +1,57 @@
-﻿using Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Domain.Enums;
+using Domain.Exceptions;
 
-namespace Domain.Entities
+namespace Domain.Entities;
+
+public class User
 {
-    public class User
+    public Guid Id { get; private set; }
+
+    public string Name { get; private set; } = null!;
+
+    public string Email { get; private set; } = null!;
+
+    public string PasswordHash { get; private set; } = null!;
+
+    public UserRole Role { get; private set; }
+
+    public DateTime CreatedAt { get; private set; }
+
+    private User() { }
+
+    public static User Create(string name, string email, string passwordHash, UserRole role)
     {
-        public Guid Id { get; private set; }
+        if (string.IsNullOrWhiteSpace(name))
+            throw new DomainException(DomainErrorCodes.InvalidUser, "Name is required.");
 
-        public string Name { get; private set; }
+        if (string.IsNullOrWhiteSpace(email) || !IsValidEmail(email.Trim()))
+            throw new DomainException(DomainErrorCodes.InvalidUser, "A valid email is required.");
 
-        public string Email { get; private set; }
+        if (string.IsNullOrWhiteSpace(passwordHash))
+            throw new DomainException(DomainErrorCodes.InvalidUser, "Password hash is required.");
 
-        public string PasswordHash { get; private set; }
+        if (!Enum.IsDefined(role))
+            throw new DomainException(DomainErrorCodes.InvalidUser, "Role is not valid.");
 
-        public UserRole Role { get; private set; }
+        return new User
+        {
+            Id = Guid.NewGuid(),
+            Name = name.Trim(),
+            Email = email.Trim().ToLowerInvariant(),
+            PasswordHash = passwordHash,
+            Role = role,
+            CreatedAt = DateTime.UtcNow
+        };
+    }
 
-        public DateTime CreatedAt { get; private set; }
-
-        private User() { }
+    private static bool IsValidEmail(string email)
+    {
+        var at = email.IndexOf('@');
+        return at > 0
+            && at == email.LastIndexOf('@')
+            && at < email.Length - 1
+            && !email.Contains(' ')
+            && email.IndexOf('.', at) > at + 1
+            && !email.EndsWith('.');
     }
 }

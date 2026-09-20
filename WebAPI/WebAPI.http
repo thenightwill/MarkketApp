@@ -1,6 +1,68 @@
-@WebAPI_HostAddress = http://localhost:5203
+@host = http://localhost:5203
+@token = paste-the-accessToken-here
 
-GET {{WebAPI_HostAddress}}/weatherforecast/
-Accept: application/json
+### Login as administrator
+POST {{host}}/api/auth/login
+Content-Type: application/json
 
-###
+{ "email": "admin@supermarket.local", "password": "<Seed:AdminPassword>" }
+
+### Register (always creates an Employee)
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{ "name": "Ana Perez", "email": "ana@supermarket.local", "password": "Secret123" }
+
+### List products
+GET {{host}}/api/products
+Authorization: Bearer {{token}}
+
+### Create product (administrator)
+POST {{host}}/api/products
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "name": "Cafe Molido", "brand": "Juan Valdez", "category": "Bebidas", "unitType": "Weight", "unitValue": 0.5, "cost": 8000, "salePrice": 11000 }
+
+### List inventory (low stock)
+GET {{host}}/api/inventory?lowStock=true
+Authorization: Bearer {{token}}
+
+### Register a batch (administrator)
+POST {{host}}/api/inventory
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "productId": "paste-product-id", "batchNumber": "L001", "location": "A-01", "quantity": 20, "minimumStock": 5, "receivedDate": "2026-09-01T00:00:00Z", "expirationDate": "2026-12-01T00:00:00Z" }
+
+### Restock a batch (administrator)
+POST {{host}}/api/inventory/paste-stock-id/add-quantity
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "quantity": 10 }
+
+### Create sale (price, lot and user are decided by the backend)
+POST {{host}}/api/sales
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "items": [ { "productId": "paste-product-id", "quantity": 15 } ] }
+
+### My sales
+GET {{host}}/api/sales
+Authorization: Bearer {{token}}
+
+### Create task
+POST {{host}}/api/tasks
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "title": "Revisar lotes por vencer", "description": "Bodega A", "dueDate": "2026-10-01T00:00:00Z" }
+
+### Move a task forward (Pending -> InProgress -> Completed)
+PUT {{host}}/api/tasks/paste-task-id
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "title": "Revisar lotes por vencer", "description": "Bodega A", "dueDate": "2026-10-01T00:00:00Z", "status": "InProgress" }

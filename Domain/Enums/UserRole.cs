@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+namespace Domain.Enums;
 
-namespace Domain.Enums
+public enum UserRole
 {
-    public enum UserRole
-    {
-        Employee = 1,
-        Administrator = 2
-    }
+    Employee = 1,
+    Administrator = 2
 }

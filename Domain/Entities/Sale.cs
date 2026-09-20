@@ -1,26 +1,75 @@
-﻿using Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Domain.Enums;
+using Domain.Exceptions;
 
-namespace Domain.Entities
+namespace Domain.Entities;
+
+public class Sale
 {
-    public class Sale
+    private readonly List<SaleItem> _items = new();
+
+    public Guid Id { get; private set; }
+
+    public Guid UserId { get; private set; }
+
+    public DateTime SaleDate { get; private set; }
+
+    public decimal Total { get; private set; }
+
+    public SaleStatus Status { get; private set; }
+
+    public IReadOnlyCollection<SaleItem> Items => _items.AsReadOnly();
+
+    private Sale() { }
+
+    public static Sale Create(Guid userId, DateTime saleDate)
     {
-        public Guid Id { get; private set; }
+        if (userId == Guid.Empty)
+            throw new DomainException(DomainErrorCodes.InvalidSale, "User is required.");
 
-        public Guid UserId { get; private set; }
+        return new Sale
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            SaleDate = saleDate,
+            Status = SaleStatus.Incomplete,
+            Total = 0m
+        };
+    }
 
-        public DateTime SaleDate { get; private set; }
+    public void AddItem(Guid productId, decimal quantity, decimal unitPrice)
+    {
+        EnsureNotCompleted();
 
-        public decimal Total { get; private set; }
+        if (_items.Any(i => i.ProductId == productId))
+            throw new DomainException(DomainErrorCodes.DuplicateSaleItem, "The product is already part of the sale.");
 
-        public SaleStatus Status { get; private set; }
+        var item = SaleItem.Create(productId, quantity, unitPrice);
+        item.AttachTo(Id);
+        _items.Add(item);
 
-        private readonly List<SaleItem> _items = new();
+        CalculateTotal();
+    }
 
-        public IReadOnlyCollection<SaleItem> Items => _items.AsReadOnly();
+    public decimal CalculateTotal()
+    {
+        Total = _items.Sum(i => i.Subtotal);
+        return Total;
+    }
 
-        private Sale() { }
+    public void Complete()
+    {
+        EnsureNotCompleted();
+
+        if (_items.Count == 0)
+            throw new DomainException(DomainErrorCodes.SaleEmpty, "A sale must contain at least one item.");
+
+        CalculateTotal();
+        Status = SaleStatus.Completed;
+    }
+
+    private void EnsureNotCompleted()
+    {
+        if (Status == SaleStatus.Completed)
+            throw new DomainException(DomainErrorCodes.SaleAlreadyCompleted, "The sale is already completed.");
     }
 }

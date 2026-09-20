@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+namespace Domain.Enums;
 
-namespace Domain.Enums
+public enum SaleStatus
 {
-    public enum SaleStatus
-    {
-        Completed = 1
-    }
+    Completed = 1,
+    Incomplete = 2
 }

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -7,15 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Interfaces\Authentication\" />
-    <Folder Include="Interfaces\Services\" />
-    <Folder Include="Interfaces\Persistance\" />
-    <Folder Include="Inventory\" />
-    <Folder Include="Authentication\" />
-    <Folder Include="Common\" />
-    <Folder Include="Task\" />
-    <Folder Include="Sales\" />
-    <Folder Include="Products\" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
 
 </Project>

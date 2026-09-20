@@ -1,133 +1,168 @@
-﻿using Domain.Enums;
+using Domain.Enums;
 using Domain.Exceptions;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Domain.Entities
+namespace Domain.Entities;
+
+public class Product
 {
-    public class Product
+    public Guid Id { get; private set; }
+
+    public string Name { get; private set; } = null!;
+
+    public string Brand { get; private set; } = null!;
+
+    public string Category { get; private set; } = null!;
+
+    public UnitType UnitType { get; private set; }
+
+    public decimal UnitValue { get; private set; }
+
+    public decimal Cost { get; private set; }
+
+    public decimal SalePrice { get; private set; }
+
+    public bool IsActive { get; private set; }
+
+    public DateTimeOffset CreatedAt { get; private set; }
+
+    public DateTimeOffset? UpdatedAt { get; private set; }
+
+    private Product()
     {
-        public Guid Id { get; private set; }
+    }
 
-        public string Name { get; private set; }
+    public static Product Create(
+        string name,
+        string brand,
+        string category,
+        UnitType unitType,
+        decimal unitValue,
+        decimal cost,
+        decimal salePrice)
+    {
+        ValidateInformation(name, brand, category, unitType, unitValue);
+        ValidatePricing(cost, salePrice);
 
-        public string Brand { get; private set; }
-
-        public string Category { get; private set; }
-
-        public UnitType UnitType { get; private set; }
-
-        public decimal UnitValue { get; private set; }
-
-        public decimal Cost { get; private set; }
-
-        public decimal SalePrice { get; private set; }
-
-        public bool IsActive { get; private set; }
-
-        public DateTimeOffset CreatedAt { get; private set; }
-
-        public DateTimeOffset? UpdatedAt { get; private set; }
-
-        private Product()
+        return new Product
         {
-        }
+            Id = Guid.NewGuid(),
+            Name = name.Trim(),
+            Brand = brand.Trim(),
+            Category = category.Trim(),
+            UnitType = unitType,
+            UnitValue = unitValue,
+            Cost = cost,
+            SalePrice = salePrice,
+            IsActive = true,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+    }
 
-        public static Product Create(
-            string name,
-            string brand,
-            string category,
-            UnitType unitType,
-            decimal unitValue,
-            decimal cost,
-            decimal salePrice)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new DomainException("Product name is required.");
+    public void ChangePrice(decimal newSalePrice)
+    {
+        ValidatePricing(Cost, newSalePrice);
 
-            if (string.IsNullOrWhiteSpace(brand))
-                throw new DomainException("Product brand is required.");
+        SalePrice = newSalePrice;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
 
-            if (string.IsNullOrWhiteSpace(category))
-                throw new DomainException("Product category is required.");
+    public void ChangePricing(decimal newCost, decimal newSalePrice)
+    {
+        ValidatePricing(newCost, newSalePrice);
 
-            if (unitValue <= 0)
-                throw new DomainException("Unit value must be greater than zero.");
+        Cost = newCost;
+        SalePrice = newSalePrice;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
 
-            if (cost < 0)
-                throw new DomainException("Cost cannot be negative.");
+    public void UpdateInformation(
+        string name,
+        string brand,
+        string category,
+        UnitType unitType,
+        decimal unitValue)
+    {
+        ValidateInformation(name, brand, category, unitType, unitValue);
 
-            if (salePrice < cost)
-                throw new DomainException(
-                    "Sale price cannot be lower than cost.");
+        Name = name.Trim();
+        Brand = brand.Trim();
+        Category = category.Trim();
+        UnitType = unitType;
+        UnitValue = unitValue;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
 
-            return new Product
-            {
-                Id = Guid.NewGuid(),
-                Name = name,
-                Brand = brand,
-                Category = category,
-                UnitType = unitType,
-                UnitValue = unitValue,
-                Cost = cost,
-                SalePrice = salePrice,
-                IsActive = true,
-                CreatedAt = DateTimeOffset.UtcNow
-            };
-        }
-        public void ChangePrice(decimal newSalePrice)
-        {
-            if (newSalePrice < Cost)
-            {
-                throw new DomainException(
-                    "Sale price cannot be lower than cost.");
-            }
+    public void Update(
+        string name,
+        string brand,
+        string category,
+        UnitType unitType,
+        decimal unitValue,
+        decimal cost,
+        decimal salePrice)
+    {
+        ValidateInformation(name, brand, category, unitType, unitValue);
+        ValidatePricing(cost, salePrice);
 
-            SalePrice = newSalePrice;
-            UpdatedAt = DateTimeOffset.UtcNow;
-        }
+        Name = name.Trim();
+        Brand = brand.Trim();
+        Category = category.Trim();
+        UnitType = unitType;
+        UnitValue = unitValue;
+        Cost = cost;
+        SalePrice = salePrice;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
 
-        public void UpdateInformation(
-                                        string name,
-                                        string brand,
-                                        string category,
-                                        UnitType unitType,
-                                        decimal unitValue)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new DomainException(
-                    "Product name is required.");
-            }
+    public bool IsValidQuantity(decimal quantity)
+    {
+        if (quantity <= 0)
+            return false;
 
-            if (string.IsNullOrWhiteSpace(brand))
-            {
-                throw new DomainException(
-                    "Product brand is required.");
-            }
+        return UnitType != UnitType.Unit || quantity == decimal.Truncate(quantity);
+    }
 
-            if (string.IsNullOrWhiteSpace(category))
-            {
-                throw new DomainException(
-                    "Product category is required.");
-            }
+    public void Activate()
+    {
+        IsActive = true;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
 
-            if (unitValue <= 0)
-            {
-                throw new DomainException(
-                    "Unit value must be greater than zero.");
-            }
+    public void Deactivate()
+    {
+        IsActive = false;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
 
-            Name = name;
-            Brand = brand;
-            Category = category;
-            UnitType = unitType;
-            UnitValue = unitValue;
+    private static void ValidateInformation(
+        string name,
+        string brand,
+        string category,
+        UnitType unitType,
+        decimal unitValue)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new DomainException(DomainErrorCodes.InvalidProduct, "Product name is required.");
 
-            UpdatedAt = DateTimeOffset.UtcNow;
-        }
+        if (string.IsNullOrWhiteSpace(brand))
+            throw new DomainException(DomainErrorCodes.InvalidProduct, "Product brand is required.");
 
+        if (string.IsNullOrWhiteSpace(category))
+            throw new DomainException(DomainErrorCodes.InvalidProduct, "Product category is required.");
 
+        if (!Enum.IsDefined(unitType))
+            throw new DomainException(DomainErrorCodes.InvalidProduct, "Unit type is not valid.");
+
+        if (unitValue <= 0)
+            throw new DomainException(DomainErrorCodes.InvalidProduct, "Unit value must be greater than zero.");
+    }
+
+    private static void ValidatePricing(decimal cost, decimal salePrice)
+    {
+        if (cost < 0)
+            throw new DomainException(DomainErrorCodes.InvalidProductPrice, "Cost cannot be negative.");
+
+        if (salePrice < cost)
+            throw new DomainException(DomainErrorCodes.InvalidProductPrice, "Sale price cannot be lower than cost.");
     }
 }

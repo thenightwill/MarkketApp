@@ -1,14 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+namespace Domain.Exceptions;
 
-namespace Domain.Exceptions
+public class DomainException : Exception
 {
-    public class DomainException : Exception
+    public string Code { get; }
+
+    public DomainException(string message)
+        : this(DomainErrorCodes.ValidationError, message)
     {
-        public DomainException(string message)
-            : base(message)
-        {
-        }
+    }
+
+    public DomainException(string code, string message)
+        : base(message)
+    {
+        Code = code;
     }
 }
